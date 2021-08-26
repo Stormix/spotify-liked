@@ -1,0 +1,5 @@
+node_modules
+build
+.eslintrc.js
+src/scripts
+*.config.js

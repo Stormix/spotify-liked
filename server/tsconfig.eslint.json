@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowJs": false,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "lib": ["es2018"],
+    "module": "commonjs",
+    "target": "es2018",
+    "baseUrl": "./",
+    "typeRoots": ["node_modules/@types", "src/typings"],
+    "outDir": "./build"
+  },
+
+  "include": ["src/**/*.ts", "tests/**/*"],
+  "exclude": ["node_modules"]
+}
