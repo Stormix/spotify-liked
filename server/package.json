@@ -8,8 +8,6 @@
     "lint:fix": "eslint --fix --ext .ts src/",
     "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
     "prod": "node ./build/server.js",
-    "queue": "node ./build/worker.js",
-    "queue:dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only ./src/worker.ts",
     "test": "jest --runInBand",
     "test:dev": "jest --runInBand --watch",
     "release": "standard-version"

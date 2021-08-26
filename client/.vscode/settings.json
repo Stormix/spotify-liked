@@ -1,0 +1,11 @@
+{
+  "scss.validate": false,
+  "css.validate": false,
+  "vetur.experimental.templateInterpolationService": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}
