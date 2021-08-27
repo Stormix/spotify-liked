@@ -10,7 +10,10 @@ export const validators = {
   REFRESH_TOKEN_SECRET: str(),
   ALLOWED_ORIGINS: str(),
   SPOTIFY_CLIENT_ID: str(),
-  SPOTIFY_CLIENT_SECRET: str()
+  SPOTIFY_CLIENT_SECRET: str(),
+  REDIS_HOST: str(),
+  REDIS_PORT: str(),
+  REDIS_PASSWORD: str()
 }
 const validateEnv = () => {
   return cleanEnv(process.env, validators)

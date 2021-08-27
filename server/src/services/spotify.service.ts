@@ -1,34 +1,10 @@
 import axios from 'axios'
 import { spotifyClientID, spotifyClientSecret } from '../env'
+import { SpotifyLikedTrack } from '../interfaces/SpotifyLikedTrack'
+import { SpotifyPagedResponse } from '../interfaces/SpotifyPagedResponse'
+import { SpotifyTokens } from '../interfaces/SpotifyTokens'
+import { SpotifyUser } from '../interfaces/SpotifyUser'
 import logger from '../utils/logger'
-
-export interface SpotifyTokens {
-  access_token: string
-  token_type: string
-  expires_in: number
-  scope?: string
-  refresh_token: string
-}
-
-export interface SpotifyImage {
-  url: string
-  width?: number
-  height?: number
-}
-
-export interface SpotifyUser {
-  display_name: string
-  external_urls: {
-    spotify: string
-  }
-  email: string
-  href: string
-  id: string
-  type: string
-  uri: string
-  images: SpotifyImage[]
-  product: string
-}
 
 export class SpotifyService {
   hostUrl: string
@@ -36,7 +12,7 @@ export class SpotifyService {
   tokens: SpotifyTokens
 
   public static login(origin: string) {
-    const scopes = 'user-read-private user-read-email'
+    const scopes = 'user-read-private user-read-email user-library-read'
     const redirect_uri = `${origin}/callback`
     const endpoint = `https://accounts.spotify.com/authorize?client_id=${spotifyClientID}&response_type=code&redirect_uri=${redirect_uri}&scope=${scopes}`
 
@@ -102,6 +78,63 @@ export class SpotifyService {
       return response.data as SpotifyUser
     } catch (error) {
       logger.error('Spotify client error: ', error)
+      return null
+    }
+  }
+
+  public async refreshToken(tokens: SpotifyTokens) {
+    try {
+      const params = new URLSearchParams()
+      params.append('grant_type', 'refresh_token')
+      params.append('refresh_token', tokens.refresh_token)
+
+      const response = await axios.post(
+        'https://accounts.spotify.com/api/token',
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+      )
+
+      const newTokenResponse = response.data as {
+        access_token: string
+        token_type: string
+        expires_in: number
+        scope?: string
+      }
+
+      if (newTokenResponse) {
+        return {
+          ...tokens,
+          access_token: newTokenResponse.access_token
+        }
+      }
+
+      throw new Error('Failed to refresh tokens')
+    } catch (error) {
+      logger.error('Failed to refresh tokens: ', error)
+      return tokens
+    }
+  }
+
+  public async getUserTracks(tokens: SpotifyTokens) {
+    try {
+      const api = this.getApiInstance(tokens)
+      const response = await api.get('/me/tracks?offset=0&limit=20')
+      const data = response.data as SpotifyPagedResponse<SpotifyLikedTrack>
+
+      while (data.next) {
+        const nextResponse = await api.get(data.next)
+        const nextData =
+          nextResponse.data as SpotifyPagedResponse<SpotifyLikedTrack>
+        data.items = data.items.concat(nextData.items)
+        data.next = nextData.next
+      }
+
+      return data
+    } catch (error) {
       return null
     }
   }

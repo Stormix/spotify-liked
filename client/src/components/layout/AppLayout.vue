@@ -2,10 +2,12 @@
   <div class="flex flex-col">
     <Header />
     <main class="flex-grow">
-      <div class="h-full rounded-lg shadow bg-base-200 drawer">
+      <div class="h-full rounded-lg shadow drawer">
         <input id="my-drawer" type="checkbox" class="drawer-toggle" />
-        <div class="flex flex-col items-center justify-center drawer-content">
-          <slot />
+        <div class="flex flex-col drawer-content">
+          <div class="container h-full px-4 mx-auto">
+            <slot />
+          </div>
         </div>
         <div class="drawer-side">
           <label for="my-drawer" class="drawer-overlay"></label>

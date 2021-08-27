@@ -3,7 +3,6 @@ import Home from '@/pages/Home.vue'
 import NotFound from '@/pages/NotFound.vue'
 import Privacy from '@/pages/Privacy.vue'
 import Callback from '@/pages/Callback.vue'
-import Dashboard from '../pages/Dashboard.vue'
 
 const routes = [
   {
@@ -21,11 +20,6 @@ const routes = [
     name: 'callback',
     path: '/callback',
     component: Callback,
-  },
-  {
-    name: 'dashboard',
-    path: '/dashboard',
-    component: Dashboard,
   },
   {
     name: 'privacy',

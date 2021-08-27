@@ -11,7 +11,10 @@ export const env = {
   REFRESH_TOKEN_SECRET: '',
   ALLOWED_ORIGINS: '',
   SPOTIFY_CLIENT_ID: '',
-  SPOTIFY_CLIENT_SECRET: ''
+  SPOTIFY_CLIENT_SECRET: '',
+  REDIS_HOST: '',
+  REDIS_PORT: '',
+  REDIS_PASSWORD: ''
 }
 
 export const generateTestENV = () => {

@@ -23,3 +23,9 @@ export const refreshTokenLife = 86400
 export const sessionCookieName = 'spotify-liked-session'
 export const spotifyClientID = env.SPOTIFY_CLIENT_ID
 export const spotifyClientSecret = env.SPOTIFY_CLIENT_SECRET
+
+export const redisConfig = {
+  host: env.REDIS_HOST,
+  port: env.REDIS_PORT,
+  password: env.REDIS_PASSWORD
+}

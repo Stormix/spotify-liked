@@ -14,6 +14,7 @@
     "test": "echo 'no tests found'"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.4.1",
     "@vueuse/head": "^0.5.1",
     "axios": "^0.21.1",
     "core-js": "^3.10.1",
@@ -23,6 +24,7 @@
     "date-fns-tz": "^1.1.4",
     "es6-promise": "^4.2.8",
     "spotify-login": "^0.2.0",
+    "theme-change": "^2.0.2",
     "vue": "^3.0.5",
     "vue-router": "^4.0.5",
     "vue-toastification": "^2.0.0-rc.1",

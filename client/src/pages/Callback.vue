@@ -10,6 +10,8 @@
   import { defineComponent } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useToast } from 'vue-toastification'
+  import { useStore } from 'vuex'
+  import { cookieName } from '../config/auth.config'
   import api from '../providers/api'
   import cookiesUtils from '../utils/cookies.utils'
   import { persist } from '../utils/persist.utils'
@@ -18,6 +20,7 @@
       const toast = useToast()
       const route = useRoute()
       const router = useRouter()
+      const store = useStore()
       const code = route.query.code
 
       if (!code) {
@@ -26,12 +29,12 @@
       }
       const redirect = () => {
         router.push({
-          name: 'dashboard',
+          name: 'home',
         })
       }
 
       const checkIfAlreadyLoggedIn = async () => {
-        const token = await cookiesUtils.get('token')
+        const token = await cookiesUtils.get(cookieName)
         if (token) {
           redirect()
         }
@@ -46,8 +49,9 @@
           if (reponse.status === 200) {
             const { token, expiresIn } = reponse.data
 
-            await persist('token', token, expiresIn)
+            await persist(cookieName, token, expiresIn)
             toast.success('Successfully logged in!')
+            store.dispatch('userStore/fetch')
             return redirect()
           }
         } catch (error) {

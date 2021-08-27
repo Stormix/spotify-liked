@@ -58,6 +58,17 @@ class UsersController extends BaseController {
       return this.fail(res, error)
     }
   }
+
+  async getUserTracks(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { user } = req
+      const tracks = await spotifyService.getUserTracks(user.tokens)
+
+      return this.ok(res, tracks.items)
+    } catch (error) {
+      return this.fail(res, error)
+    }
+  }
 }
 
 export default UsersController

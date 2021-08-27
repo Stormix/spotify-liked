@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 import { apiUrl, apiVersion } from '../env'
+import { useAuth } from '../utils/auth.utils'
 
 export class SpotifyLikedAPI {
   api: AxiosInstance
@@ -18,8 +19,9 @@ export class SpotifyLikedAPI {
     data: any,
     extraHeaders = {}
   ) {
-    // const token =
-    // client.defaults.headers['authorization'] = 'Bearer ' + token
+    const { getToken } = useAuth()
+    const token = getToken()
+    this.api.defaults.headers['authorization'] = 'Bearer ' + token
 
     this.api.defaults.headers[method] =
       extraHeaders ?? this.api.defaults.headers[method]

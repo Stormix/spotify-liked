@@ -5,8 +5,9 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, State } from 'vue'
   import { useRoute } from 'vue-router'
+  import { useStore } from 'vuex'
   import AppLayout from './components/layout/AppLayout.vue'
   import setupCookieConsent from './utils/cookieconsent.utils'
 
@@ -17,7 +18,10 @@
     },
     setup() {
       const route = useRoute()
+      const store = useStore<State>()
       setupCookieConsent()
+
+      store.dispatch('userStore/fetch')
 
       return {
         route,

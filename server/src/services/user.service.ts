@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken'
 import { IUser } from '../interfaces/user.interface'
 import logger from '../utils/logger'
 import { accessTokenLife, accessTokenSecret } from '../env'
-import { SpotifyTokens, SpotifyUser } from './Spotify.service'
+import { SpotifyUser } from './SpotifyUser'
+import { SpotifyTokens } from './SpotifyTokens'
 import userModel from '../models/user.model'
 
 export interface UserCreateObject {
@@ -23,6 +24,8 @@ export class UserService {
     const dbUser = await userModel.findOne({ email: user.email }).exec()
 
     if (dbUser) {
+      dbUser.tokens = tokens
+      dbUser.save()
       return dbUser
     }
 
