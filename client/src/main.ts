@@ -7,7 +7,9 @@ import '@/assets/scss/app.scss'
 
 import { createHead } from '@vueuse/head'
 
-// import '@/assets/styles/tailwind.scss'
+import Toast from 'vue-toastification'
+// Import the CSS or use your own!
+import 'vue-toastification/dist/index.css'
 
 const startApp = () => {
   const head = createHead()
@@ -20,6 +22,10 @@ const startApp = () => {
    */
 
   app.use(head)
+
+  app.use(Toast, {
+    // TODO: modify options
+  })
 
   // Mount app
   app.mount('#app')

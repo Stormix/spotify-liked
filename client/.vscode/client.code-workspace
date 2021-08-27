@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "vetur.experimental.templateInterpolationService": true,
+    "editor.formatOnSave": false,
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "css.validate": false,
+    "less.validate": false,
+    "scss.validate": true,
+  }
+}

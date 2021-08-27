@@ -2,7 +2,7 @@
   "name": "spotify-liked",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3334",
     "build": "vue-tsc --noEmit && vite build",
     "serve": "vite preview",
     "lint:script": "eslint --ext .ts,vue --ignore-path .gitignore .",
@@ -18,11 +18,14 @@
     "axios": "^0.21.1",
     "core-js": "^3.10.1",
     "core-js-bundle": "^3.10.1",
+    "daisyui": "^1.14.0",
     "date-fns": "^2.19.0",
     "date-fns-tz": "^1.1.4",
     "es6-promise": "^4.2.8",
+    "spotify-login": "^0.2.0",
     "vue": "^3.0.5",
     "vue-router": "^4.0.5",
+    "vue-toastification": "^2.0.0-rc.1",
     "vuex": "^4.0.0"
   },
   "devDependencies": {

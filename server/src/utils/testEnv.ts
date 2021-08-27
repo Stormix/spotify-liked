@@ -9,7 +9,9 @@ export const env = {
   DSN: '',
   ACCESS_TOKEN_SECRET: '',
   REFRESH_TOKEN_SECRET: '',
-  ALLOWED_ORIGINS: ''
+  ALLOWED_ORIGINS: '',
+  SPOTIFY_CLIENT_ID: '',
+  SPOTIFY_CLIENT_SECRET: ''
 }
 
 export const generateTestENV = () => {

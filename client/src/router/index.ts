@@ -1,24 +1,36 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import Home from '@/pages/Home.vue'
-import NotFound from '../pages/NotFound.vue'
-
+import NotFound from '@/pages/NotFound.vue'
+import Privacy from '@/pages/Privacy.vue'
+import Callback from '@/pages/Callback.vue'
+import Dashboard from '../pages/Dashboard.vue'
 
 const routes = [
   {
     path: '/',
+    alias: ['/home'],
     name: 'home',
     component: Home,
-    meta: {
-      layout: 'MainLayout',
-    },
   },
   {
     name: 'not-found',
     path: '/not-found',
     component: NotFound,
-    meta: {
-      layout: 'MainLayout',
-    },
+  },
+  {
+    name: 'callback',
+    path: '/callback',
+    component: Callback,
+  },
+  {
+    name: 'dashboard',
+    path: '/dashboard',
+    component: Dashboard,
+  },
+  {
+    name: 'privacy',
+    path: '/privacy',
+    component: Privacy,
   },
 
   // otherwise redirect to 404
@@ -51,6 +63,5 @@ const router = createRouter({
     })
   },
 })
-
 
 export default router

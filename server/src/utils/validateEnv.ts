@@ -8,7 +8,9 @@ export const validators = {
   DSN: str(),
   ACCESS_TOKEN_SECRET: str(),
   REFRESH_TOKEN_SECRET: str(),
-  ALLOWED_ORIGINS: str()
+  ALLOWED_ORIGINS: str(),
+  SPOTIFY_CLIENT_ID: str(),
+  SPOTIFY_CLIENT_SECRET: str()
 }
 const validateEnv = () => {
   return cleanEnv(process.env, validators)

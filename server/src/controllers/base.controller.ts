@@ -1,5 +1,8 @@
 import { Response } from 'express'
 import { Error } from 'mongoose'
+import { accessTokenLife } from '../env'
+import { IUser } from '../interfaces/user.interface'
+import { UserService } from '../services/user.service'
 import logger from '../utils/logger'
 
 export default abstract class BaseController {
@@ -79,6 +82,19 @@ export default abstract class BaseController {
     logger.error(error.message, error)
     return res.status(500).json({
       message: error.toString()
+    })
+  }
+
+  public notImplemented(res: Response) {
+    return this.jsonResponse(res, 501, 'Not implemented')
+  }
+
+  public async jwtToken(res: Response, user: IUser) {
+    const token = await UserService.generateToken(user)
+
+    return this.ok(res, {
+      token,
+      expiresIn: accessTokenLife
     })
   }
 }

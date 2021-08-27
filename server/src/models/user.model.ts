@@ -1,7 +1,6 @@
-import { SchemaTypes, Schema, model } from 'mongoose'
+import { Schema, model } from 'mongoose'
 import mongoose_delete from 'mongoose-delete'
 import { IUser } from '../interfaces/user.interface'
-const { ObjectId } = SchemaTypes
 
 const userSchema = new Schema(
   {
@@ -9,7 +8,16 @@ const userSchema = new Schema(
       type: String,
       unique: true
     },
-    password: String,
+    spotifyId: String,
+    tokens: {
+      access_token: String,
+      token_type: String,
+      expires_in: Number,
+      scope: String,
+      refresh_token: String
+    },
+    displayName: String,
+    imageUrl: String
   },
   {
     timestamps: true

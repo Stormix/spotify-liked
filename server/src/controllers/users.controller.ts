@@ -1,8 +1,8 @@
 import { Request, Response } from 'express'
 import { validationResult } from 'express-validator'
-import { accessTokenLife } from '../env'
 import { AuthenticatedRequest } from '../interfaces/auth.interface'
 import BaseController from './base.controller'
+import spotifyService, { SpotifyService } from '../services/Spotify.service'
 import { UserService } from '../services/user.service'
 
 /**
@@ -10,7 +10,6 @@ import { UserService } from '../services/user.service'
  */
 
 class UsersController extends BaseController {
-
   /**
    * Get Authenticated User
    */
@@ -19,35 +18,19 @@ class UsersController extends BaseController {
     return this.ok(res, req.user)
   }
 
-
-  /**
-   * Register new user
-   */
-  async registerUser(req: Request, res: Response) {
-    const errors = validationResult(req)
-
-    if (!errors.isEmpty()) {
-      return this.invalid(res)
-    }
-
+  async getUrl(req: Request, res: Response) {
     try {
-      const newUser = await UserService.register(req.body, req)
-      const accessToken = UserService.generateToken(newUser)
+      const origin = req.headers.origin || 'localhost'
 
-      return this.created(res, {
-        token: accessToken,
-        expiresIn: accessTokenLife
+      return this.ok(res, {
+        redirect_url: SpotifyService.login(origin)
       })
     } catch (error) {
       return this.fail(res, error)
     }
   }
 
-  /**
-   * Login new user
-   *
-   */
-  async loginUser(req: Request, res: Response) {
+  async authenticateUser(req: Request, res: Response) {
     try {
       const origin = req.headers.origin || 'localhost'
       const errors = validationResult(req)
@@ -55,22 +38,26 @@ class UsersController extends BaseController {
       if (!errors.isEmpty()) {
         return this.invalid(res)
       }
+      const { code } = req.body
+      const tokens = await spotifyService.getUserTokens(origin, code)
 
-      const user = await UserService.login(
-        req.body.email.toLowerCase(),
-        req.body.password
-      )
+      if (!tokens) {
+        return this.fail(res, new Error('Invalid code'))
+      }
 
-      const accessToken = UserService.generateToken(user)
-      return this.ok(res, {
-        token: accessToken,
-        expiresIn: accessTokenLife
-      })
+      const spotifyUser = await spotifyService.getUserInfo(tokens)
+
+      if (!spotifyUser) {
+        return this.fail(res, new Error('Invalid tokens'))
+      }
+
+      const user = await UserService.findOrCreate(spotifyUser, tokens)
+
+      return await this.jwtToken(res, user)
     } catch (error) {
       return this.fail(res, error)
     }
   }
-
 }
 
 export default UsersController

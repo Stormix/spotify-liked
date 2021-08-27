@@ -1,10 +1,9 @@
-import { IUser } from "../interfaces/user.interface"
-import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
+import { IUser } from '../interfaces/user.interface'
 import logger from '../utils/logger'
-import User from '../models/user.model'
 import { accessTokenLife, accessTokenSecret } from '../env'
+import { SpotifyTokens, SpotifyUser } from './Spotify.service'
+import userModel from '../models/user.model'
 
 export interface UserCreateObject {
   email: string
@@ -16,48 +15,24 @@ export class UserService {
   constructor(user?: IUser) {
     this.user = user
   }
-  /**
-   *
-   * Register new user using device ID or email - this assumes all input data was already validated
-   * and atleast one of the two is set (email or deviceID)
-   *
-   * @param user UserCreateObject
-   *
-   * @returns
-   */
 
-  static async createUser(user: UserCreateObject) {
-    const emailVerificationToken = crypto.randomBytes(64).toString('hex')
+  static async findOrCreate(user: SpotifyUser, tokens: SpotifyTokens) {
+    if (!tokens || !user) {
+      throw new Error('No tokens or user provided')
+    }
+    const dbUser = await userModel.findOne({ email: user.email }).exec()
 
-    const payload: any = {
+    if (dbUser) {
+      return dbUser
+    }
+
+    return userModel.create({
       email: user.email,
-      password: bcrypt.hashSync(user.password),
-
-    }
-
-    // Check if the user already exists. Do this after the extra Gmail verification step
-    const oldUser = await UserService.getUserBy('email', payload.email)
-
-    if (oldUser?._id) {
-      throw new Error('A user with this email already exists.')
-    }
-
-    return new User(payload).save()
-  }
-
-  /**
-   * Register new user - this assumes all input data was already validated
-   * @param {User} user
-   */
-  static async register(user: UserCreateObject, req: Request = null) {
-    const ip =
-      (req?.headers?.['x-forwarded-for'] as string) ||
-      null
-
-    const newUser = await UserService.createUser({ ...user })
-
-
-    return newUser
+      spotifyId: user.id,
+      displayName: user.display_name,
+      tokens,
+      imageUrl: user.images?.[0]?.url ?? null
+    })
   }
 
   /**
@@ -72,9 +47,9 @@ export class UserService {
     try {
       const filter: any = {}
       filter[field] = value
-      return await User.findOne(filter)
+      return await userModel
+        .findOne(filter)
         .populate([
-
           // TODO
         ])
         .exec()
@@ -84,26 +59,7 @@ export class UserService {
     }
   }
 
-  /**
-   * Login user - returns the user doc
-   * @param {string} email
-   * @param {string} password
-   */
-  static async login(email: any, password: any) {
-    const user = await UserService.getUserBy('email', email)
-    if (!user) {
-      throw new Error('User not found')
-    }
-    if (
-      !bcrypt.compareSync(password, user.password) // Check user password
-    ) {
-      throw new Error('Incorrect password')
-    }
-
-    return user
-  }
-
-  static generateToken(user: any) {
+  static generateToken(user: IUser) {
     const body = { _id: user._id, email: user.email }
     const accessToken = jwt.sign({ user: body }, accessTokenSecret, {
       algorithm: 'HS256',
@@ -120,5 +76,4 @@ export class UserService {
     // }
     return accessToken
   }
-
 }

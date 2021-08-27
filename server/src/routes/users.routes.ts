@@ -18,29 +18,23 @@ class UsersRoute implements Route {
   }
 
   private initializeRoutes() {
-    this.router.get('/me', authMiddleware(), (req: AuthenticatedRequest, res: Response) =>
-      this.usersController.getAuthenticatedUser(req, res)
+    this.router.get(
+      '/me',
+      authMiddleware(),
+      (req: AuthenticatedRequest, res: Response) =>
+        this.usersController.getAuthenticatedUser(req, res)
+    )
+
+    this.router.post('/spotify', (req: Request, res: Response) =>
+      this.usersController.getUrl(req, res)
     )
 
     this.router.post(
-      '/login',
-      [
-        check('email').isEmail().normalizeEmail(),
-        check('password').not().isEmpty()
-      ],
-      (req: Request, res: Response) => this.usersController.loginUser(req, res)
-    )
-
-    this.router.post(
-      '/register',
-      [
-        check('email').isEmail().normalizeEmail(),
-        check('password').not().isEmpty()
-      ],
+      '/auth',
+      [check('code').not().isEmpty()],
       (req: Request, res: Response) =>
-        this.usersController.registerUser(req, res)
+        this.usersController.authenticateUser(req, res)
     )
-
   }
 }
 
