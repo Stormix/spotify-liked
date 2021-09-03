@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken'
 import { IUser } from '../interfaces/user.interface'
 import logger from '../utils/logger'
 import { accessTokenLife, accessTokenSecret } from '../env'
-import { SpotifyUser } from './SpotifyUser'
-import { SpotifyTokens } from './SpotifyTokens'
 import userModel from '../models/user.model'
+import { SpotifyUser } from '../interfaces/SpotifyUser'
+import { SpotifyTokens } from '../interfaces/SpotifyTokens'
 
 export interface UserCreateObject {
   email: string

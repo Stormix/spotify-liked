@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../interfaces/auth.interface'
 import BaseController from './base.controller'
 import spotifyService, { SpotifyService } from '../services/Spotify.service'
 import { UserService } from '../services/user.service'
+import userModel from '../models/user.model'
 
 /**
  * User Controller
@@ -62,9 +63,56 @@ class UsersController extends BaseController {
   async getUserTracks(req: AuthenticatedRequest, res: Response) {
     try {
       const { user } = req
-      const tracks = await spotifyService.getUserTracks(user.tokens)
+      const tracks = await spotifyService.getUserTracks(user)
 
       return this.ok(res, tracks?.items ?? [])
+    } catch (error) {
+      return this.fail(res, error)
+    }
+  }
+
+  async createPlaylist(req: AuthenticatedRequest, res: Response) {
+    try {
+      const errors = validationResult(req)
+
+      if (!errors.isEmpty()) {
+        return this.invalid(res)
+      }
+
+      const { user } = req
+      const { name, description, isPublic, sync } = req.body
+
+      // Ensure the user doesn't already have a playlist with the same name
+      if (user.playlist) {
+        return this.clientError(res, 'User already has a playlist')
+      }
+
+      const response = await spotifyService.createPlaylist(
+        user,
+        name,
+        description,
+        isPublic
+      )
+
+      if (!response) {
+        return this.fail(res, new Error('Could not create playlist'))
+      }
+
+      // Update user playlist
+      await userModel
+        .updateOne({
+          playlist: {
+            id: response.id,
+            name,
+            description,
+            isPublic,
+            sync,
+            lastUpdated: new Date()
+          }
+        })
+        .exec()
+
+      return this.created(res)
     } catch (error) {
       return this.fail(res, error)
     }

@@ -42,6 +42,19 @@ class UsersRoute implements Route {
       (req: AuthenticatedRequest, res: Response) =>
         this.usersController.getUserTracks(req, res)
     )
+
+    this.router.post(
+      '/playlist',
+      [
+        authMiddleware(),
+        check('name').not().isEmpty(),
+        check('description').not().isEmpty(),
+        check('isPublic').not().isEmpty(),
+        check('sync').not().isEmpty()
+      ],
+      (req: AuthenticatedRequest, res: Response) =>
+        this.usersController.createPlaylist(req, res)
+    )
   }
 }
 

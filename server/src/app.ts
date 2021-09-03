@@ -1,3 +1,7 @@
+// import expressListRoutes from 'express-list-routes'
+import { createBullBoard } from '@bull-board/api'
+import { BullAdapter } from '@bull-board/api/bullAdapter'
+import { ExpressAdapter } from '@bull-board/express'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import compression from 'compression'
@@ -9,10 +13,11 @@ import hpp from 'hpp'
 import { createServer, Server as HttpServer } from 'http'
 import mongoose from 'mongoose'
 import morgan from 'morgan'
-// import expressListRoutes from 'express-list-routes'
 import mongooseConfig from './config/mongoose.config'
 import { dsn, mongoUri, port } from './env'
 import Route from './interfaces/routes.interface'
+import { syncQueue } from './jobs/queues/sync-playlist.queue'
+import { syncAllUsersQueue } from './jobs/queues/sync-users.queue'
 import errorMiddleware from './middleware/error.middleware'
 import rateLimiterMiddleware from './middleware/rateLimiter.middleware'
 import { Environment } from './typings/Environment'
@@ -52,6 +57,7 @@ class App {
 
     this.initializeMiddlewares()
     this.initializeRoutes(routes)
+    this.initializeBullBoard()
     this.initializeErrorHandling()
   }
 
@@ -170,6 +176,20 @@ class App {
         }
       })
     )
+  }
+
+  private initializeBullBoard() {
+    if (this.env.isTest) {
+      return
+    }
+    const serverAdapter = new ExpressAdapter()
+    createBullBoard({
+      queues: [new BullAdapter(syncAllUsersQueue), new BullAdapter(syncQueue)],
+      serverAdapter
+    })
+
+    serverAdapter.setBasePath('/jobs')
+    this.app.use('/jobs', serverAdapter.getRouter())
   }
 }
 

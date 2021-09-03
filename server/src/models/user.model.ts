@@ -17,7 +17,21 @@ const userSchema = new Schema(
       refresh_token: String
     },
     displayName: String,
-    imageUrl: String
+    imageUrl: String,
+    playlist: {
+      type: {
+        id: String,
+        name: String,
+        description: String,
+        sync: Boolean,
+        isPublic: Boolean,
+        lastUpdated: { type: Date, default: null },
+        snapshot_id: { type: String, default: null },
+        length: { type: Number, default: 0 },
+        status: { type: String, default: 'created' }
+      },
+      default: null
+    }
   },
   {
     timestamps: true

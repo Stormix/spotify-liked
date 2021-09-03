@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import { SpotifyTokens } from '../services/SpotifyTokens'
+import { Playlist } from './playlist.interface'
+import { SpotifyTokens } from './SpotifyTokens'
 
 export interface IUser extends mongoose.Document {
   email: string
@@ -7,4 +8,5 @@ export interface IUser extends mongoose.Document {
   tokens: SpotifyTokens
   displayName: string
   imageUrl: string
+  playlist: Playlist
 }

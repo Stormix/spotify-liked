@@ -22,7 +22,7 @@
     </div>
   </div>
   <div v-else class="py-4">
-    <div v-if="!loading" class="w-full shadow stats bg-neutral">
+    <div v-if="tracks.length > 0" class="w-full shadow stats bg-neutral">
       <div class="stat">
         <div class="stat-figure text-primary">
           <svg
@@ -70,9 +70,62 @@
     </div>
     <loading v-else />
 
+    <div v-if="playlist" class="my-4">
+      <h3 class="mb-4 text-2xl font-bold">Playlist:</h3>
+
+      <div class="overflow-x-auto">
+        <table class="table w-full">
+          <thead>
+            <tr>
+              <th>Playlist</th>
+              <th>Status</th>
+              <th>Tracks</th>
+              <th>Last updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="items-center">
+              <td>
+                <a
+                  :href="`https://open.spotify.com/playlist/${playlist.id}`"
+                  target="_blank"
+                  class="link-primary"
+                >
+                  {{ playlist.name }}
+                </a>
+              </td>
+              <td>
+                <div class="badge badge-secondary badge-outline">
+                  {{ playlist?.status ?? 'unknown' }}
+                </div>
+              </td>
+              <td>
+                {{ playlist?.length ?? 0 }}
+              </td>
+              <td>
+                <span class="italic opacity-60">{{ lastUpdated }}</span>
+              </td>
+              <td class="flex">
+                <button
+                  class="mr-2 normal-case btn btn-xs btn-outline btn-primary"
+                >
+                  Sync now
+                </button>
+
+                <button class="normal-case btn btn-xs btn-outline btn-primary">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="my-4">
-      <h3 class="mb-2 text-2xl font-bold">Liked songs:</h3>
-      <song-list v-if="!loading" />
+      <h3 class="mb-4 text-2xl font-bold">Liked songs:</h3>
+      <song-list v-if="tracks.length > 0" />
       <loading v-else />
 
       <div class="flex">
@@ -81,7 +134,7 @@
           for="generate-playlist-model"
           class="btn btn-accent modal-button"
         >
-          Generate playlist
+          {{ playlist ? 'Update playlist' : 'Generate playlist' }}
         </label>
         <input
           id="generate-playlist-model"
@@ -90,7 +143,9 @@
         />
         <div class="modal">
           <div class="modal-box">
-            <h3 class="mb-2 text-2xl font-bold">Generate playlist</h3>
+            <h3 class="mb-2 text-2xl font-bold">
+              {{ playlist ? 'Update playlist' : 'Generate playlist' }}
+            </h3>
             <p>Enim dolorem dolorum omnis atque necessitatibus.</p>
 
             <div v-if="playlist?.id" class="alert alert-success">
@@ -134,7 +189,7 @@
                   v-model="description"
                   placeholder="Add a description"
                   class="input"
-                ></textarea>
+                />
               </div>
               <div class="form-control">
                 <label class="cursor-pointer label">
@@ -189,14 +244,8 @@
   import { customFormatDuration } from '../utils/time.utils'
   import SongList from '../components/sections/SongList.vue'
   import Loading from '../components/blocks/loading.vue'
-
-  export interface Playlist {
-    id?: string
-    name: string
-    description: string
-    isPublic: boolean
-    sync: boolean
-  }
+  import { format } from 'date-fns'
+  import { parseISO } from 'date-fns/fp'
 
   export default defineComponent({
     components: { SongList, Loading },
@@ -208,7 +257,10 @@
       const tracks = computed(() => {
         return store.state.userStore.tracks
       })
-      const playlist = ref<Playlist>() // This is temp, we should look for in on the user DB
+
+      const playlist = computed(() => {
+        return user.value?.playlist
+      })
 
       const created = ref(false)
       const name = ref('')
@@ -227,22 +279,32 @@
       const createPlaylist = async () => {
         createLoading.value = true
         try {
-          // Await fake promise for now
-          await new Promise((resolve) => setTimeout(resolve, 10000))
-
-          // Show success message
-          toast.success('Playlist created successfully')
-
-          playlist.value = {
+          const payload = {
             name: name.value,
             description: description.value,
             isPublic: isPublic.value,
             sync: sync.value,
           }
 
+          // Await fake promise for now
+          const response = await API.execute('POST', 'users/playlist', payload)
+
+          if (response.status === 201) {
+            // Show success message
+            toast.success('Playlist created successfully')
+            // refetch user
+            store.dispatch('userStore/fetch')
+            // Close modal
+            closeModal()
+          } else {
+            // Show error message
+            toast.error(`Something went wrong: ${response.data}`)
+          }
+
           created.value = true
         } catch (error) {
-          toast.error(error.message)
+          toast.error(error?.response?.data?.message ?? 'UNKNOWN')
+          console.error(error)
         } finally {
           createLoading.value = false
         }
@@ -250,7 +312,6 @@
 
       const totalDuration = computed(() => {
         if (!tracks.value) return 0
-        console.log(tracks.value)
         return tracks.value.reduce((acc, track) => {
           return acc + track?.track?.duration_ms ?? 0
         }, 0)
@@ -270,6 +331,11 @@
         }
       }
 
+      const lastUpdated = computed(() => {
+        if (!playlist.value?.lastUpdated) return '_'
+        return format(parseISO(playlist.value?.lastUpdated), 'yyyy-MM-dd HH:mm')
+      })
+
       return {
         login,
         user,
@@ -285,6 +351,8 @@
         createPlaylist,
         playlist,
         created,
+        closeModal,
+        lastUpdated,
       }
     },
   })
