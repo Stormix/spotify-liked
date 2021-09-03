@@ -1,12 +1,10 @@
-import { computed, State, toRefs } from 'vue'
-import store from '../store'
+import { computed, State } from 'vue'
 import router from '../router'
 import cookiesUtils from './cookies.utils'
 import { cookieName } from '../config/auth.config'
+import { useStore } from 'vuex'
 
 export const useAuth = () => {
-  const state = (store.state as State).userStore
-
   const getToken = () => {
     return (
       cookiesUtils.get(cookieName) || window.localStorage.getItem(cookieName)
@@ -14,10 +12,14 @@ export const useAuth = () => {
   }
 
   const localToken = getToken()
-
+  const store = useStore<State>()
   const isAuthenticated = !!localToken
-
-  const { user, loading } = toRefs(state)
+  const user = computed(() => {
+    return store.state.userStore.user
+  })
+  const loading = computed(() => {
+    return store.state.userStore.loading
+  })
 
   const isLoggedIn = computed(() => !!user.value)
 

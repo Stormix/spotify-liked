@@ -64,7 +64,7 @@ class UsersController extends BaseController {
       const { user } = req
       const tracks = await spotifyService.getUserTracks(user.tokens)
 
-      return this.ok(res, tracks.items)
+      return this.ok(res, tracks?.items ?? [])
     } catch (error) {
       return this.fail(res, error)
     }

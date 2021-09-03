@@ -135,6 +135,7 @@ export class SpotifyService {
 
       return data
     } catch (error) {
+      logger.error('Spotify client error: ', error)
       return null
     }
   }

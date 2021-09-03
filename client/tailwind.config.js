@@ -1,5 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { join } = require('path')
+const defaultTheme = require('tailwindcss/defaultTheme')
 const BASE_DIR = join(__dirname, 'src')
 const VUE_FILE = join('**', '*.vue')
 
@@ -14,7 +15,11 @@ const config = {
     content: [join(BASE_DIR, VUE_FILE), join(__dirname, '*.html')],
   },
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Inter var', ...defaultTheme.fontFamily.sans],
+      },
+    },
   },
   variants: {},
   plugins: [require('@tailwindcss/typography'), require('daisyui')],

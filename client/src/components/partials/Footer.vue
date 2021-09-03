@@ -28,7 +28,8 @@
         </a>
         .
         <br />
-        Not related to Spotify AB or any of it´s partners in any way
+        SpotifyLiked is not affiliated with Spotify. All Trademarks referred to
+        are the property of their respective owners.
       </p>
     </div>
     <div class="md:place-self-center md:justify-self-end">

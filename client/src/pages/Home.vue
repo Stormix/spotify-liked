@@ -22,7 +22,7 @@
     </div>
   </div>
   <div v-else class="py-4">
-    <div v-if="!loading" class="w-full shadow stats">
+    <div v-if="!loading" class="w-full shadow stats bg-neutral">
       <div class="stat">
         <div class="stat-figure text-primary">
           <svg
@@ -40,7 +40,7 @@
           </svg>
         </div>
         <div class="stat-title">Total Liked Songs</div>
-        <div class="stat-value text-primary">{{ tracks.length }}</div>
+        <div class="stat-value text-primary">{{ tracks.length || '_' }}</div>
       </div>
       <div class="stat">
         <div class="stat-figure text-info">
@@ -60,24 +60,146 @@
         </div>
         <div class="stat-title">Total Duration</div>
         <div class="stat-value text-info">
-          {{ customFormatDuration({ start: 0, end: totalDuration }) }}
+          {{
+            totalDuration
+              ? customFormatDuration({ start: 0, end: totalDuration })
+              : '_'
+          }}
         </div>
       </div>
     </div>
+    <loading v-else />
+
     <div class="my-4">
       <h3 class="mb-2 text-2xl font-bold">Liked songs:</h3>
+      <song-list v-if="!loading" />
+      <loading v-else />
+
+      <div class="flex">
+        <div class="flex-1"></div>
+        <label
+          for="generate-playlist-model"
+          class="btn btn-accent modal-button"
+        >
+          Generate playlist
+        </label>
+        <input
+          id="generate-playlist-model"
+          type="checkbox"
+          class="modal-toggle"
+        />
+        <div class="modal">
+          <div class="modal-box">
+            <h3 class="mb-2 text-2xl font-bold">Generate playlist</h3>
+            <p>Enim dolorem dolorum omnis atque necessitatibus.</p>
+
+            <div v-if="playlist?.id" class="alert alert-success">
+              <div class="flex-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  class="w-6 h-6 mx-2 stroke-current"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                  ></path>
+                </svg>
+                <label>
+                  You can checkout your playlist <a href="">here</a> .
+                </label>
+              </div>
+            </div>
+
+            <form>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Playlist Name</span>
+                </label>
+                <input
+                  v-model="name"
+                  type="text"
+                  placeholder="Add a name"
+                  class="input"
+                />
+              </div>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Description</span>
+                </label>
+                <textarea
+                  v-model="description"
+                  placeholder="Add a description"
+                  class="input"
+                ></textarea>
+              </div>
+              <div class="form-control">
+                <label class="cursor-pointer label">
+                  <span class="label-text">Make playlist public?</span>
+                  <input
+                    v-model="isPublic"
+                    type="checkbox"
+                    checked="checked"
+                    class="toggle"
+                  />
+                </label>
+              </div>
+              <div class="form-control">
+                <label class="cursor-pointer label">
+                  <span class="label-text">Automatically sync playlist?</span>
+                  <input
+                    type="checkbox"
+                    checked="checked"
+                    class="toggle"
+                    b-model="sync"
+                  />
+                </label>
+              </div>
+            </form>
+
+            <div class="modal-action">
+              <button
+                for="generate-playlist-model"
+                class="btn btn-primary"
+                :class="{
+                  loading: createLoading,
+                }"
+                @click="createPlaylist"
+              >
+                Create
+              </button>
+              <label for="generate-playlist-model" class="btn">Cancel</label>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, State } from 'vue'
+  import { computed, defineComponent, ref, State } from 'vue'
   import API from '@/providers/api'
   import { useToast } from 'vue-toastification'
   import { useAuth } from '../utils/auth.utils'
   import { useStore } from 'vuex'
   import { customFormatDuration } from '../utils/time.utils'
+  import SongList from '../components/sections/SongList.vue'
+  import Loading from '../components/blocks/loading.vue'
+
+  export interface Playlist {
+    id?: string
+    name: string
+    description: string
+    isPublic: boolean
+    sync: boolean
+  }
+
   export default defineComponent({
+    components: { SongList, Loading },
     setup() {
       const toast = useToast()
       const { user } = useAuth()
@@ -86,9 +208,49 @@
       const tracks = computed(() => {
         return store.state.userStore.tracks
       })
+      const playlist = ref<Playlist>() // This is temp, we should look for in on the user DB
+
+      const created = ref(false)
+      const name = ref('')
+      const description = ref('')
+      const isPublic = ref(true)
+      const sync = ref(true)
+      const createLoading = ref(false)
+
+      const closeModal = () => {
+        const modalCheckbox = document.querySelector(
+          '.modal-toggle'
+        ) as HTMLInputElement
+        if (modalCheckbox) modalCheckbox.checked = false
+      }
+
+      const createPlaylist = async () => {
+        createLoading.value = true
+        try {
+          // Await fake promise for now
+          await new Promise((resolve) => setTimeout(resolve, 10000))
+
+          // Show success message
+          toast.success('Playlist created successfully')
+
+          playlist.value = {
+            name: name.value,
+            description: description.value,
+            isPublic: isPublic.value,
+            sync: sync.value,
+          }
+
+          created.value = true
+        } catch (error) {
+          toast.error(error.message)
+        } finally {
+          createLoading.value = false
+        }
+      }
 
       const totalDuration = computed(() => {
         if (!tracks.value) return 0
+        console.log(tracks.value)
         return tracks.value.reduce((acc, track) => {
           return acc + track?.track?.duration_ms ?? 0
         }, 0)
@@ -115,6 +277,14 @@
         totalDuration,
         loading,
         customFormatDuration,
+        name,
+        description,
+        isPublic,
+        sync,
+        createLoading,
+        createPlaylist,
+        playlist,
+        created,
       }
     },
   })

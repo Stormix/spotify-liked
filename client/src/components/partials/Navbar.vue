@@ -138,7 +138,7 @@
       ]
 
       onMounted(() => {
-        themeChange(false)
+        themeChange('dracula')
       })
 
       return {
