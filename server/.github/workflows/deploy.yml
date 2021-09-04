@@ -1,0 +1,39 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependancies
+        run: yarn
+      - name: Run tests
+        run: yarn test
+        env:
+          NODE_ENV: test
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install caprover
+        run: sudo npm install -g caprover
+
+      - name: Install dependencies
+        run: yarn install --non-interactive
+
+      - name: Compile assets
+        run: yarn build
+
+      - name: Create tar
+        run: tar -cvf ./deploy.tar --exclude='*.map' ecosystem.config.js captain-definition package.json yarn.lock Dockerfile build/*
+
+      - name: Deploy
+        run: caprover deploy -h ${{ secrets.CAPROVER_SERVER_PROD }} -p ${{ secrets.CAPROVER_PASSWORD_PROD }} -a spotify-liked-api -t ./deploy.tar
