@@ -10,7 +10,6 @@ const fetch = async (context: Context<UserState>): Promise<void> => {
     const response = await api.execute('GET', 'users/me', {})
     const user = response.data
     context.commit('setUser', user)
-    fetchTracks(context)
     return
   } catch (e) {
     return Promise.reject(e)
@@ -46,8 +45,22 @@ const logout = async (context: Context<UserState>): Promise<void> => {
   }
 }
 
+const deletePlaylist = async (context: Context<UserState>): Promise<void> => {
+  try {
+    context.commit(`setLoading`, true)
+    await api.execute('DELETE', 'users/playlist')
+    await fetch(context)
+    return
+  } catch (e) {
+    return Promise.reject(e)
+  } finally {
+    context.commit(`setLoading`, false)
+  }
+}
+
 export default {
   fetch,
   logout,
   fetchTracks,
+  deletePlaylist,
 }

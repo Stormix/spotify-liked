@@ -64,7 +64,9 @@ class UsersController extends BaseController {
     try {
       const { user } = req
       const tracks = await spotifyService.getUserTracks(user)
-
+      if (!tracks?.items) {
+        return this.clientError(res, 'No tracks found')
+      }
       return this.ok(res, tracks?.items ?? [])
     } catch (error) {
       return this.fail(res, error)
@@ -113,6 +115,30 @@ class UsersController extends BaseController {
         .exec()
 
       return this.created(res)
+    } catch (error) {
+      return this.fail(res, error)
+    }
+  }
+
+  async deletePlaylist(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { user } = req
+
+      // Ensure the user doesn't already have a playlist with the same name
+      if (!user.playlist) {
+        return this.clientError(res, "User doesn't have a playlist")
+      }
+
+      await spotifyService.deletePlaylist(user)
+
+      // Update user playlist
+      await userModel
+        .updateOne({
+          playlist: null
+        })
+        .exec()
+
+      return this.ok(res)
     } catch (error) {
       return this.fail(res, error)
     }

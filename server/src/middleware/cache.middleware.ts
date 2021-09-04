@@ -16,6 +16,13 @@ export default (name?: string) => {
       res.express_redis_cache_name = `user:${req.user.id}:${name} `
       next()
     },
-    cache.route()
+    cache.route({
+      expire: {
+        200: cacheDuration,
+        '4xx': 10,
+        '5xx': 10,
+        xxx: 1
+      }
+    })
   ]
 }

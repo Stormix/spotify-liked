@@ -113,9 +113,21 @@
                   Sync now
                 </button>
 
-                <button class="normal-case btn btn-xs btn-outline btn-primary">
+                <button
+                  class="normal-case btn btn-xs btn-outline btn-primary"
+                  @click="confirmDelete"
+                >
                   Delete
                 </button>
+                <confirm-modal
+                  id="confirm-delete"
+                  :message="`This action will remove your playlist and all associated tracks. It
+              cannot be undone.`"
+                  :modal-status="showConfirmDelete"
+                  :loading="deleteLoading"
+                  @confirm="deletePlaylist"
+                  @close="close"
+                />
               </td>
             </tr>
           </tbody>
@@ -222,6 +234,7 @@
                 :class="{
                   loading: createLoading,
                 }"
+                :disabled="createLoading"
                 @click="createPlaylist"
               >
                 Create
@@ -246,9 +259,10 @@
   import Loading from '../components/blocks/loading.vue'
   import { format } from 'date-fns'
   import { parseISO } from 'date-fns/fp'
+  import ConfirmModal from '../components/modals/ConfirmModal.vue'
 
   export default defineComponent({
-    components: { SongList, Loading },
+    components: { SongList, Loading, ConfirmModal },
     setup() {
       const toast = useToast()
       const { user } = useAuth()
@@ -263,8 +277,8 @@
       })
 
       const created = ref(false)
-      const name = ref('')
-      const description = ref('')
+      const name = ref('Spotify Liked')
+      const description = ref('A playlist with all my liked songs on spotify.')
       const isPublic = ref(true)
       const sync = ref(true)
       const createLoading = ref(false)
@@ -290,10 +304,12 @@
           const response = await API.execute('POST', 'users/playlist', payload)
 
           if (response.status === 201) {
+            // refetch user
+            await store.dispatch('userStore/fetch')
+
             // Show success message
             toast.success('Playlist created successfully')
-            // refetch user
-            store.dispatch('userStore/fetch')
+
             // Close modal
             closeModal()
           } else {
@@ -335,7 +351,29 @@
         if (!playlist.value?.lastUpdated) return '_'
         return format(parseISO(playlist.value?.lastUpdated), 'yyyy-MM-dd HH:mm')
       })
+      const showConfirmDelete = ref(false)
+      const deleteLoading = ref(false)
 
+      const confirmDelete = () => {
+        showConfirmDelete.value = true
+      }
+
+      const deletePlaylist = async () => {
+        deleteLoading.value = true
+        try {
+          await store.dispatch('userStore/deletePlaylist')
+          toast.success('Playlist deleted')
+          close()
+        } catch (error) {
+          console.error(error)
+        } finally {
+          deleteLoading.value = false
+        }
+      }
+
+      const close = () => {
+        showConfirmDelete.value = false
+      }
       return {
         login,
         user,
@@ -353,6 +391,11 @@
         created,
         closeModal,
         lastUpdated,
+        confirmDelete,
+        deletePlaylist,
+        showConfirmDelete,
+        close,
+        deleteLoading,
       }
     },
   })

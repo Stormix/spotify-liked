@@ -52,6 +52,7 @@
             await persist(cookieName, token, expiresIn)
             toast.success('Successfully logged in!')
             store.dispatch('userStore/fetch')
+            store.dispatch('userStore/fetchTracks')
             return redirect()
           }
         } catch (error) {

@@ -125,6 +125,8 @@ export class SpotifyService {
 
       params.append('grant_type', 'refresh_token')
       params.append('refresh_token', tokens.refresh_token)
+      params.append('client_id', spotifyClientID)
+      params.append('client_secret', spotifyClientSecret)
 
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
@@ -153,6 +155,7 @@ export class SpotifyService {
       throw new Error('Failed to refresh tokens')
     } catch (error) {
       logger.error('Failed to refresh tokens: ', error)
+      console.error(error)
       return tokens
     }
   }
@@ -223,6 +226,11 @@ export class SpotifyService {
       logger.error('Spotify client error: ', error)
       return null
     }
+  }
+
+  public async deletePlaylist(user: IUser) {
+    const api = await this.getRefreshedInstance(user)
+    await api.delete(`/playlists/${user.playlist.id}/followers`)
   }
 }
 

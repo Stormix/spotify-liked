@@ -55,6 +55,13 @@ class UsersRoute implements Route {
       (req: AuthenticatedRequest, res: Response) =>
         this.usersController.createPlaylist(req, res)
     )
+
+    this.router.delete(
+      '/playlist',
+      [authMiddleware()],
+      (req: AuthenticatedRequest, res: Response) =>
+        this.usersController.deletePlaylist(req, res)
+    )
   }
 }
 
