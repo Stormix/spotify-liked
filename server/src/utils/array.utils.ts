@@ -1,4 +1,4 @@
-export const chunk = (array: any[], size: number) => {
+export const chunk: <T>(array: T[], size: number) => T[][] = (array, size) => {
   if (array.length === 0) {
     return []
   }

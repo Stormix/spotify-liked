@@ -1,12 +1,15 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import createAuthRefreshInterceptor from 'axios-auth-refresh'
 import { spotifyClientID, spotifyClientSecret } from '../env'
 import { SpotifyLikedTrack } from '../interfaces/SpotifyLikedTrack'
 import { SpotifyPagedResponse } from '../interfaces/SpotifyPagedResponse'
+import { SpotifyPlaylistTrack } from '../interfaces/SpotifyPlaylistTrack'
 import { SpotifyTokens } from '../interfaces/SpotifyTokens'
+import { SpotifyTrack } from '../interfaces/SpotifyTrack'
 import { SpotifyUser } from '../interfaces/SpotifyUser'
 import { IUser } from '../interfaces/user.interface'
 import userModel from '../models/user.model'
+import { asyncForEach, chunk } from '../utils/array.utils'
 import logger from '../utils/logger'
 
 export class SpotifyService {
@@ -173,7 +176,7 @@ export class SpotifyService {
         data.items = data.items.concat(nextData.items)
         data.next = nextData.next
       }
-
+      logger.info(`User has ${data?.items?.length} liked tracks!`)
       return data
     } catch (error) {
       logger.error(
@@ -208,7 +211,7 @@ export class SpotifyService {
 
       return response.data as { id: string }
     } catch (error) {
-      logger.error('Spotify client error: ', error)
+      logger.error('Failed to create playlist ', error)
       return null
     }
   }
@@ -218,12 +221,84 @@ export class SpotifyService {
     tracks: SpotifyLikedTrack[]
   ): Promise<string | null> {
     try {
-      // TODO
-      const api = await this.getRefreshedInstance(user)
+      if (!user.playlist.id) {
+        throw new Error('User does not have a playlist')
+      }
 
-      return null
+      // First clear user playlist
+      await this.clearPlaylist(user)
+
+      // Then add tracks to playlist
+      logger.info(`Adding ${tracks.length} tracks to playlist`)
+      const api = await this.getRefreshedInstance(user)
+      const batches = chunk(tracks, 100)
+      let snapshot_id = ''
+
+      await asyncForEach<SpotifyLikedTrack[]>(batches, async (batch, index) => {
+        logger.info(
+          `Processing batch #${index + 1} of ${batches.length} batches.`
+        )
+        // For each batch of 100 tracks
+        const response: AxiosResponse<{ snapshot_id: string }> = await api.post(
+          `/playlists/${user.playlist.id}/tracks`,
+          {
+            uris: batch.map((item) => item.track.uri)
+            // .sort((a, b) =>
+            //   isAfter(parseISO(a.added_at), parseISO(b.added_at)) ? -1 : 1
+            // )
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        if (response.status !== 201) {
+          throw new Error('Failed to add tracks to playlist')
+        }
+
+        snapshot_id = response.data.snapshot_id
+
+        logger.info(`Completed, snapshot_id: ${snapshot_id}`)
+      })
+
+      return snapshot_id
     } catch (error) {
       logger.error('Spotify client error: ', error)
+      console.error(error)
+      return null
+    }
+  }
+
+  public async getPlaylistTracks(user: IUser) {
+    try {
+      if (!user.playlist.id) {
+        throw new Error('User does not have a playlist')
+      }
+
+      const api = await this.getRefreshedInstance(user)
+      const response: AxiosResponse<
+        SpotifyPagedResponse<SpotifyPlaylistTrack>
+      > = await api.get(`/playlists/${user.playlist.id}/tracks`)
+      const { data } = response
+
+      while (data.next) {
+        // TODO: we only get the uri here so the type doesn't really match
+        const nextResponse: AxiosResponse<
+          SpotifyPagedResponse<SpotifyPlaylistTrack>
+        > = await api.get(data.next)
+        const nextData = nextResponse.data
+        data.items = data.items.concat(nextData.items)
+        data.next = nextData.next
+      }
+      logger.info(`Playlist has ${data?.items?.length} tracks.`)
+      return data
+    } catch (error) {
+      logger.error(
+        `Spotify client error: ${JSON.stringify(error.response.data)}`,
+        error
+      )
       return null
     }
   }
@@ -231,6 +306,49 @@ export class SpotifyService {
   public async deletePlaylist(user: IUser) {
     const api = await this.getRefreshedInstance(user)
     await api.delete(`/playlists/${user.playlist.id}/followers`)
+  }
+
+  public async removePlaylistTracks(user: IUser, tracks: SpotifyTrack[]) {
+    logger.info(`Removing ${tracks.length} tracks from playlist`)
+    const api = await this.getRefreshedInstance(user)
+    const batches = chunk(tracks, 100)
+    let snapshot_id = ''
+
+    await asyncForEach<SpotifyTrack[]>(batches, async (batch, index) => {
+      logger.info(`Deleting batch #${index + 1} of ${batches.length} batches.`)
+      // For each batch of 100 tracks
+      const response = await api.delete(
+        `/playlists/${user.playlist.id}/tracks`,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: {
+            tracks: batch.map((track) => ({
+              uri: track.uri
+            }))
+          }
+        }
+      )
+
+      if (response.status !== 200) {
+        throw new Error('Failed to delete from playlist')
+      }
+
+      snapshot_id = response.data.snapshot_id
+
+      logger.info(`Completed, snapshot_id: ${snapshot_id}`)
+    })
+  }
+
+  public async clearPlaylist(user: IUser) {
+    logger.info('Clearing playlist..')
+    const response = await this.getPlaylistTracks(user)
+    const tracks = response?.items?.map((item) => item.track)
+
+    if (tracks) {
+      await this.removePlaylistTracks(user, tracks)
+    }
   }
 }
 

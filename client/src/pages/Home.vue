@@ -109,6 +109,11 @@
               <td class="flex">
                 <button
                   class="mr-2 normal-case btn btn-xs btn-outline btn-primary"
+                  :class="{
+                    loading: syncLoading,
+                  }"
+                  :disabled="syncLoading"
+                  @click="syncNow"
                 >
                   Sync now
                 </button>
@@ -249,7 +254,7 @@
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, ref, State } from 'vue'
+  import { computed, defineComponent, onBeforeUnmount, ref, State } from 'vue'
   import API from '@/providers/api'
   import { useToast } from 'vue-toastification'
   import { useAuth } from '../utils/auth.utils'
@@ -374,6 +379,27 @@
       const close = () => {
         showConfirmDelete.value = false
       }
+
+      const interval = setInterval(() => {
+        store.dispatch('userStore/fetch')
+      }, 30 * 1000)
+
+      onBeforeUnmount((): void => {
+        clearInterval(interval)
+      })
+      const syncLoading = ref(false)
+      const syncNow = async () => {
+        syncLoading.value = true
+        try {
+          await store.dispatch('userStore/syncPlaylist')
+          toast.success('Playlist queued for syncing.')
+          close()
+        } catch (error) {
+          console.error(error)
+        } finally {
+          syncLoading.value = false
+        }
+      }
       return {
         login,
         user,
@@ -396,6 +422,8 @@
         showConfirmDelete,
         close,
         deleteLoading,
+        syncNow,
+        syncLoading,
       }
     },
   })

@@ -1,6 +1,6 @@
 import { DoneCallback, Job } from 'bull'
 import userModel from '../../models/user.model'
-import spotifyService from '../../services/Spotify.service'
+import spotifyService from '../../services/spotify.service'
 import logger from '../../utils/logger'
 import { SyncQueueJobPayload } from '../queues/sync-playlist.queue'
 
@@ -12,14 +12,25 @@ export const syncPlaylist = async (
 
   logger.info(`Syncing playlist for user ${user_id}`)
 
+  const user = await userModel.findById(user_id).exec()
   try {
-    const user = await userModel.findById(user_id).exec()
-    const spotifyResponse = await spotifyService.getUserTracks(user)
-    const tracks = spotifyResponse.items
+    if (!user.playlist) {
+      logger.info(`User ${user_id} has no playlist. Skipping..`)
+      // Skip this job
+      return done()
+    }
 
     // Update user's playlist status
-    user.playlist.status = 'syncing'
+    user.playlist = {
+      ...user.playlist,
+      status: 'syncing'
+    }
     await user.save()
+
+    logger.info(`Fetching user liked tracks!`)
+
+    const spotifyResponse = await spotifyService.getUserTracks(user)
+    const tracks = spotifyResponse.items
 
     // Add tracks to user playlist
     const snapshot_id = await spotifyService.syncTracksToPlaylist(user, tracks)
@@ -33,13 +44,21 @@ export const syncPlaylist = async (
       ...user.playlist,
       lastUpdated: new Date(),
       snapshot_id,
-      length: tracks.length
+      length: tracks.length,
+      status: 'synced'
     }
     await user.save()
 
-    done()
+    return done()
   } catch (err) {
     logger.error(`Error syncing playlist for user ${user_id}`, err)
-    done(err)
+
+    user.playlist = {
+      ...user.playlist,
+      status: 'error'
+    }
+    await user.save()
+
+    return done(err)
   }
 }

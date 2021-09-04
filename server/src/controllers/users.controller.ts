@@ -5,6 +5,7 @@ import BaseController from './base.controller'
 import spotifyService, { SpotifyService } from '../services/Spotify.service'
 import { UserService } from '../services/user.service'
 import userModel from '../models/user.model'
+import { syncQueue } from '../jobs/queues/sync-playlist.queue'
 
 /**
  * User Controller
@@ -109,7 +110,8 @@ class UsersController extends BaseController {
             description,
             isPublic,
             sync,
-            lastUpdated: new Date()
+            lastUpdated: new Date(),
+            status: 'created'
           }
         })
         .exec()
@@ -135,6 +137,32 @@ class UsersController extends BaseController {
       await userModel
         .updateOne({
           playlist: null
+        })
+        .exec()
+
+      return this.ok(res)
+    } catch (error) {
+      return this.fail(res, error)
+    }
+  }
+
+  async syncPlaylist(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { user } = req
+
+      // Ensure the user doesn't already have a playlist with the same name
+      if (!user.playlist) {
+        return this.clientError(res, "User doesn't have a playlist")
+      }
+
+      await syncQueue.add({ user_id: user.id })
+
+      await userModel
+        .updateOne({
+          playlist: {
+            ...user.playlist,
+            status: 'queued'
+          }
         })
         .exec()
 

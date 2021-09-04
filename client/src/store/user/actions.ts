@@ -58,9 +58,23 @@ const deletePlaylist = async (context: Context<UserState>): Promise<void> => {
   }
 }
 
+const syncPlaylist = async (context: Context<UserState>): Promise<void> => {
+  try {
+    context.commit(`setLoading`, true)
+    await api.execute('POST', 'users/playlist/sync')
+    await fetch(context)
+    return
+  } catch (e) {
+    return Promise.reject(e)
+  } finally {
+    context.commit(`setLoading`, false)
+  }
+}
+
 export default {
   fetch,
   logout,
   fetchTracks,
   deletePlaylist,
+  syncPlaylist,
 }

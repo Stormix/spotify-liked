@@ -62,6 +62,13 @@ class UsersRoute implements Route {
       (req: AuthenticatedRequest, res: Response) =>
         this.usersController.deletePlaylist(req, res)
     )
+
+    this.router.post(
+      '/playlist/sync',
+      [authMiddleware()],
+      (req: AuthenticatedRequest, res: Response) =>
+        this.usersController.syncPlaylist(req, res)
+    )
   }
 }
 
