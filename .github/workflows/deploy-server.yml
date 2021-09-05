@@ -3,6 +3,8 @@ name: Deploy API
 on:
   push:
     branches: [main]
+    paths:
+      - 'server/**'
 
 defaults:
   run:
