@@ -211,23 +211,13 @@
               <div class="form-control">
                 <label class="cursor-pointer label">
                   <span class="label-text">Make playlist public?</span>
-                  <input
-                    v-model="isPublic"
-                    type="checkbox"
-                    checked="checked"
-                    class="toggle"
-                  />
+                  <input v-model="isPublic" type="checkbox" class="toggle" />
                 </label>
               </div>
               <div class="form-control">
                 <label class="cursor-pointer label">
                   <span class="label-text">Automatically sync playlist?</span>
-                  <input
-                    type="checkbox"
-                    checked="checked"
-                    class="toggle"
-                    b-model="sync"
-                  />
+                  <input v-model="sync" type="checkbox" class="toggle" />
                 </label>
               </div>
             </form>
