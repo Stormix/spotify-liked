@@ -32,7 +32,7 @@ jobs:
       run: yarn build
 
     - name: Create tar
-      run: tar -cvf deploy.tar captain-definition dist/* dist/.well-known/*
+      run: tar -cvf deploy.tar captain-definition dist/*
 
     - name: Deploy
       run: caprover deploy -h ${{ secrets.CAPROVER_SERVER_PROD }} -p ${{ secrets.CAPROVER_PASSWORD_PROD }} -a spotify-liked -t ./deploy.tar
