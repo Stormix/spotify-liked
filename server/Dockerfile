@@ -6,6 +6,7 @@ WORKDIR /app
 
 COPY package.json ./
 COPY yarn.lock ./
+COPY ecosystem.config.js ./
 
 RUN yarn install --silent --production
 
