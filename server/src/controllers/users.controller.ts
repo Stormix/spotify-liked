@@ -101,6 +101,8 @@ class UsersController extends BaseController {
         return this.fail(res, new Error('Could not create playlist'))
       }
 
+      await syncQueue.add({ user_id: user.id })
+
       // Update user playlist
       await userModel
         .updateOne({
@@ -111,10 +113,11 @@ class UsersController extends BaseController {
             isPublic,
             sync,
             lastUpdated: new Date(),
-            status: 'created'
+            status: 'queued'
           }
         })
         .exec()
+
 
       return this.created(res)
     } catch (error) {

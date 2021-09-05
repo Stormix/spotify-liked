@@ -148,6 +148,7 @@
       <div class="flex">
         <div class="flex-1"></div>
         <label
+          v-if="!playlist"
           for="generate-playlist-model"
           class="btn btn-accent modal-button"
         >
@@ -181,7 +182,15 @@
                   ></path>
                 </svg>
                 <label>
-                  You can checkout your playlist <a href="">here</a> .
+                  Check out the created playlist
+                  <a
+                    :href="`https://open.spotify.com/playlist/${playlist.id}`"
+                    target="_blank"
+                    class="link-secondary"
+                  >
+                    here
+                  </a>
+                  .
                 </label>
               </div>
             </div>
@@ -234,7 +243,7 @@
               >
                 Create
               </button>
-              <label for="generate-playlist-model" class="btn">Cancel</label>
+              <label for="generate-playlist-model" class="btn">Close</label>
             </div>
           </div>
         </div>

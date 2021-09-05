@@ -5,6 +5,6 @@ module.exports = {
   }, {
     name: 'spotify-liked-worker',
     script: './build/jobs/worker.js',
-    instances: 1
+    instances: 4
   }]
 };
