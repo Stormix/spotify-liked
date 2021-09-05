@@ -1,16 +1,16 @@
-name: CD
+name: Deploy API
 
 on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: ./server
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./server
-
     steps:
       - uses: actions/checkout@v2
       - name: Install dependancies
@@ -22,10 +22,6 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./server
-
     steps:
       - uses: actions/checkout@v2
 
