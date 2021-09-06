@@ -1,4 +1,4 @@
-# Spotify Like (still a WIP)
+# Spotify Liked (still a WIP)
 
 Idea proudly yoinked from [AlaaZorkane](https://github.com/AlaaZorkane/) as detailed in [this notion](https://www.notion.so/difys/Spotify-Liked-Songs-7a6e846c7f3e4b2c880e90888090b917).
 
