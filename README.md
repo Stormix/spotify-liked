@@ -24,7 +24,11 @@ Your **"Liked Songs"** playlist is a private playlist, unlike other playlists it
 
 ## The solution
 
-TODO
+
+
+https://user-images.githubusercontent.com/18377687/132215714-2dd4c151-bb6e-4f3f-a625-aae1b9ab5714.mp4
+
+
 <!-- Make a program (a background worker) that on each interval communicates with the Spotify API using your access token and adds all songs that are on your **Liked Songs** to a public playlist.
 
 - It's going to be fully in Rust
